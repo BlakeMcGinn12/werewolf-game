@@ -319,8 +319,39 @@
             
             <div id="name-inputs"></div>
             
-            <button class="btn btn-primary" onclick="startGame()">Start Game!</button>
+            <button class="btn btn-primary" onclick="goToRoleConfig()">Next →</button>
             <button class="btn btn-secondary" onclick="goBack()">← Back</button>
+        </div>
+        
+        <!-- Screen 3: Role Configuration -->
+        <div id="roles-screen" class="screen">
+            <h1>🎭 Roles</h1>
+            <p class="subtitle">Choose your roles</p>
+            
+            <div class="instructions">
+                <h3>Role Count:</h3>
+                <p>Total players: <strong id="total-players">6</strong></p>
+                <p style="margin-top: 10px; color: #666;">Villagers will fill remaining spots automatically.</p>
+            </div>
+            
+            <div class="input-group">
+                <label>🐺 Werewolves</label>
+                <input type="number" id="werewolf-count" min="1" max="6" value="2" onchange="updateVillagerCount()">
+            </div>
+            
+            <div class="input-group">
+                <label>🔮 Seers</label>
+                <input type="number" id="seer-count" min="0" max="3" value="1" onchange="updateVillagerCount()">
+            </div>
+            
+            <div class="input-group" style="background: #f0f0f0; padding: 15px; border-radius: 10px;">
+                <label>👥 Villagers (auto-calculated)</label>
+                <div id="villager-display" style="font-size: 24px; font-weight: bold; color: #333;">3</div>
+            </div>
+            
+            <button class="btn btn-secondary" onclick="useSuggestedRoles()">🎲 Use Suggested</button>
+            <button class="btn btn-primary" onclick="startGame()">Start Game!</button>
+            <button class="btn btn-secondary" onclick="goBackToNames()">← Back</button>
         </div>
         
         <!-- Screen 3: Pass Device -->
@@ -395,6 +426,10 @@
         let players = [];
         let roles = []; // Array of role for each player index
         let currentPlayerIndex = 0;
+        let customWerewolfCount = 2;
+        let customSeerCount = 1;
+        let customVillagerCount = 3;
+        let useCustomRoles = false;
         
         function goToNameEntry() {
             const count = parseInt(document.getElementById('player-count').value);
@@ -421,33 +456,17 @@
         }
         
         function assignRoles(playerCount) {
-            // Balanced role distribution
             let rolePool = [];
             
-            if (playerCount === 5) {
-                // 5 players: 2 Werewolves, 1 Seer, 2 Villagers
-                rolePool = ['werewolf', 'werewolf', 'seer', 'villager', 'villager'];
-            } else if (playerCount === 6) {
-                // 6 players: 2 Werewolves, 1 Seer, 3 Villagers
-                rolePool = ['werewolf', 'werewolf', 'seer', 'villager', 'villager', 'villager'];
-            } else if (playerCount === 7) {
-                // 7 players: 2 Werewolves, 1 Seer, 4 Villagers
-                rolePool = ['werewolf', 'werewolf', 'seer', 'villager', 'villager', 'villager', 'villager'];
-            } else if (playerCount === 8) {
-                // 8 players: 2 Werewolves, 1 Seer, 5 Villagers
-                rolePool = ['werewolf', 'werewolf', 'seer', 'villager', 'villager', 'villager', 'villager', 'villager'];
-            } else if (playerCount === 9) {
-                // 9 players: 3 Werewolves, 1 Seer, 5 Villagers
-                rolePool = ['werewolf', 'werewolf', 'werewolf', 'seer', 'villager', 'villager', 'villager', 'villager', 'villager'];
-            } else if (playerCount === 10) {
-                // 10 players: 3 Werewolves, 1 Seer, 6 Villagers
-                rolePool = ['werewolf', 'werewolf', 'werewolf', 'seer', 'villager', 'villager', 'villager', 'villager', 'villager', 'villager'];
-            } else if (playerCount === 11) {
-                // 11 players: 3 Werewolves, 1 Seer, 7 Villagers
-                rolePool = ['werewolf', 'werewolf', 'werewolf', 'seer', 'villager', 'villager', 'villager', 'villager', 'villager', 'villager', 'villager'];
-            } else if (playerCount === 12) {
-                // 12 players: 3 Werewolves, 1 Seer, 8 Villagers
-                rolePool = ['werewolf', 'werewolf', 'werewolf', 'seer', 'villager', 'villager', 'villager', 'villager', 'villager', 'villager', 'villager', 'villager'];
+            // Use custom role configuration
+            for (let i = 0; i < customWerewolfCount; i++) {
+                rolePool.push('werewolf');
+            }
+            for (let i = 0; i < customSeerCount; i++) {
+                rolePool.push('seer');
+            }
+            for (let i = 0; i < customVillagerCount; i++) {
+                rolePool.push('villager');
             }
             
             // Shuffle roles
@@ -459,7 +478,7 @@
             return rolePool;
         }
         
-        function startGame() {
+        function goToRoleConfig() {
             const count = parseInt(document.getElementById('player-count').value);
             players = [];
             
@@ -467,6 +486,67 @@
                 const name = document.getElementById(`player-${i}`).value.trim() || `Player ${i + 1}`;
                 players.push(name);
             }
+            
+            document.getElementById('total-players').textContent = players.length;
+            updateVillagerCount();
+            showScreen('roles-screen');
+        }
+        
+        function updateVillagerCount() {
+            const total = players.length;
+            const werewolves = parseInt(document.getElementById('werewolf-count').value) || 0;
+            const seers = parseInt(document.getElementById('seer-count').value) || 0;
+            const villagers = total - werewolves - seers;
+            
+            document.getElementById('villager-display').textContent = villagers;
+            
+            // Visual feedback if invalid
+            if (villagers < 0) {
+                document.getElementById('villager-display').style.color = '#ff4757';
+                document.getElementById('villager-display').textContent = villagers + ' (Too many roles!)';
+            } else {
+                document.getElementById('villager-display').style.color = '#333';
+            }
+        }
+        
+        function useSuggestedRoles() {
+            const count = players.length;
+            let werewolves = 2;
+            let seers = 1;
+            
+            if (count >= 9) {
+                werewolves = 3;
+            }
+            
+            document.getElementById('werewolf-count').value = werewolves;
+            document.getElementById('seer-count').value = seers;
+            updateVillagerCount();
+        }
+        
+        function goBackToNames() {
+            showScreen('names-screen');
+        }
+        
+        function startGame() {
+            const total = players.length;
+            const werewolves = parseInt(document.getElementById('werewolf-count').value) || 0;
+            const seers = parseInt(document.getElementById('seer-count').value) || 0;
+            const villagers = total - werewolves - seers;
+            
+            if (villagers < 0) {
+                alert('Too many special roles! Reduce werewolves or seers.');
+                return;
+            }
+            
+            if (werewolves < 1) {
+                alert('You need at least 1 werewolf!');
+                return;
+            }
+            
+            customWerewolfCount = werewolves;
+            customSeerCount = seers;
+            customVillagerCount = villagers;
+            useCustomRoles = true;
             
             // Assign roles
             roles = assignRoles(players.length);
@@ -575,13 +655,13 @@
             // Group by role
             const werewolves = [];
             const villagers = [];
-            let seer = null;
+            const seers = [];
             
             for (let i = 0; i < players.length; i++) {
                 if (roles[i] === 'werewolf') {
                     werewolves.push(players[i]);
                 } else if (roles[i] === 'seer') {
-                    seer = players[i];
+                    seers.push(players[i]);
                 } else {
                     villagers.push(players[i]);
                 }
@@ -591,17 +671,17 @@
             if (werewolves.length > 0) {
                 container.innerHTML += `
                     <div class="reveal-section reveal-werewolf">
-                        <div class="reveal-title">🐺 Werewolves</div>
+                        <div class="reveal-title">🐺 Werewolves (${werewolves.length})</div>
                         <div class="reveal-players">${werewolves.join(', ')}</div>
                     </div>
                 `;
             }
             
-            if (seer) {
+            if (seers.length > 0) {
                 container.innerHTML += `
                     <div class="reveal-section reveal-seer">
-                        <div class="reveal-title">🔮 Seer</div>
-                        <div class="reveal-players">${seer}</div>
+                        <div class="reveal-title">🔮 Seers (${seers.length})</div>
+                        <div class="reveal-players">${seers.join(', ')}</div>
                     </div>
                 `;
             }
@@ -609,7 +689,7 @@
             if (villagers.length > 0) {
                 container.innerHTML += `
                     <div class="reveal-section reveal-villager">
-                        <div class="reveal-title">👥 Villagers</div>
+                        <div class="reveal-title">👥 Villagers (${villagers.length})</div>
                         <div class="reveal-players">${villagers.join(', ')}</div>
                     </div>
                 `;
@@ -622,6 +702,13 @@
             players = [];
             roles = [];
             currentPlayerIndex = 0;
+            useCustomRoles = false;
+            customWerewolfCount = 2;
+            customSeerCount = 1;
+            customVillagerCount = 3;
+            // Reset role inputs to defaults
+            document.getElementById('werewolf-count').value = 2;
+            document.getElementById('seer-count').value = 1;
             showScreen('setup-screen');
         }
         
