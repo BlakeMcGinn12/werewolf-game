@@ -3,6 +3,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+    <meta http-equiv="Pragma" content="no-cache">
+    <meta http-equiv="Expires" content="0">
     <title>Werewolf</title>
     <style>
         * {
@@ -701,11 +704,16 @@
                 }
             }
             
+            console.log('Starting Seer phase. Found', seerIndices.length, 'seers:', seerIndices);
+            console.log('Roles:', roles);
+            
             if (seerIndices.length === 0) {
                 // No seers, go straight to day
+                console.log('No seers found, going to day phase');
                 showGameScreen();
             } else {
                 currentSeerIndex = 0;
+                console.log('Showing Seer pass screen for seer index:', seerIndices[currentSeerIndex]);
                 showNextSeerScreen();
             }
         }
