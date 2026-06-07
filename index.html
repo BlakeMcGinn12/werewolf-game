@@ -407,6 +407,12 @@
                 <p style="margin-top: 10px; color: #666;">Keep this knowledge secret!</p>
             </div>
             
+            <div id="countdown-display" style="text-align: center; margin-bottom: 20px; padding: 15px; background: #f8f9fa; border-radius: 12px;">
+                <div style="font-size: 14px; color: #666; margin-bottom: 5px;">Concentrating...</div>
+                <div id="countdown-timer" style="font-size: 48px; font-weight: bold; color: #667eea;">15</div>
+                <div style="font-size: 12px; color: #999;">seconds until vision clears</div>
+            </div>
+            
             <div class="player-list" id="investigate-players"></div>
         </div>
         
@@ -481,6 +487,8 @@
         let seerIndices = []; // Track which players are seers
         let currentSeerIndex = 0; // Which seer is currently investigating
         let investigatedPlayerIndex = -1; // Who was investigated
+        let countdownInterval = null; // For seer investigation timer
+        let canInvestigate = false; // Whether seer can click to investigate
         
         function goToNameEntry() {
             const count = parseInt(document.getElementById('player-count').value);
@@ -712,10 +720,14 @@
             }
         }
         
+        let countdownInterval = null;
+        let canInvestigate = false;
+        
         function showSeerInvestigation() {
             const seerPlayerIndex = seerIndices[currentSeerIndex];
+            canInvestigate = false;
             
-            // Build list of other players to investigate
+            // Build list of other players to investigate (initially disabled)
             const container = document.getElementById('investigate-players');
             container.innerHTML = '';
             
@@ -723,18 +735,63 @@
                 if (index !== seerPlayerIndex) {
                     const div = document.createElement('div');
                     div.className = 'player-item';
-                    div.style.cursor = 'pointer';
-                    div.onclick = () => investigatePlayer(index);
+                    div.id = `investigate-player-${index}`;
+                    div.style.cursor = 'not-allowed';
+                    div.style.opacity = '0.5';
+                    div.onclick = () => {
+                        if (canInvestigate) {
+                            investigatePlayer(index);
+                        }
+                    };
                     div.innerHTML = `
                         <div class="player-number">${index + 1}</div>
                         <div class="player-name">${player}</div>
-                        <div style="color: #999;">🔍</div>
+                        <div class="investigate-icon" style="color: #999;">🔒</div>
                     `;
                     container.appendChild(div);
                 }
             });
             
+            // Reset and start countdown
+            document.getElementById('countdown-timer').textContent = '15';
+            document.getElementById('countdown-display').style.display = 'block';
+            
+            // Clear any existing interval
+            if (countdownInterval) {
+                clearInterval(countdownInterval);
+            }
+            
+            let secondsLeft = 15;
+            countdownInterval = setInterval(() => {
+                secondsLeft--;
+                document.getElementById('countdown-timer').textContent = secondsLeft;
+                
+                if (secondsLeft <= 0) {
+                    clearInterval(countdownInterval);
+                    enableInvestigation();
+                }
+            }, 1000);
+            
             showScreen('seer-investigate-screen');
+        }
+        
+        function enableInvestigation() {
+            canInvestigate = true;
+            document.getElementById('countdown-display').style.display = 'none';
+            
+            // Enable all player items
+            const seerPlayerIndex = seerIndices[currentSeerIndex];
+            players.forEach((player, index) => {
+                if (index !== seerPlayerIndex) {
+                    const div = document.getElementById(`investigate-player-${index}`);
+                    if (div) {
+                        div.style.cursor = 'pointer';
+                        div.style.opacity = '1';
+                        div.querySelector('.investigate-icon').textContent = '🔍';
+                        div.querySelector('.investigate-icon').style.color = '#667eea';
+                    }
+                }
+            });
         }
         
         function investigatePlayer(playerIndex) {
@@ -788,6 +845,13 @@
         }
         
         function showGameScreen() {
+            // Clear any running countdown
+            if (countdownInterval) {
+                clearInterval(countdownInterval);
+                countdownInterval = null;
+            }
+            canInvestigate = false;
+            
             const container = document.getElementById('game-players');
             container.innerHTML = '';
             
@@ -855,6 +919,13 @@
         }
         
         function newGame() {
+            // Clear any running countdown
+            if (countdownInterval) {
+                clearInterval(countdownInterval);
+                countdownInterval = null;
+            }
+            canInvestigate = false;
+            
             players = [];
             roles = [];
             currentPlayerIndex = 0;
