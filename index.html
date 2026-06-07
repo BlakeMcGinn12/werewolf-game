@@ -386,17 +386,62 @@
             <button class="btn btn-primary" onclick="nextPlayer()">Done 👍</button>
         </div>
         
-        <!-- Screen 5: Game Started -->
-        <div id="game-screen" class="screen">
-            <h1>🌙 Night Falls</h1>
+        <!-- Screen 5: Pass to Seer -->
+        <div id="seer-pass-screen" class="screen">
+            <div class="pass-device">
+                <div class="pass-device-icon">🔮</div>
+                <h2>Night Phase</h2>
+                <div class="current-player-name" id="seer-pass-name">Seer</div>
+                <p style="margin-top: 20px; color: #999;">The Seer may now investigate one player</p>
+            </div>
+            <button class="btn btn-primary" onclick="showSeerInvestigation()">I'm the Seer 👍</button>
+        </div>
+        
+        <!-- Screen 6: Seer Investigation -->
+        <div id="seer-investigate-screen" class="screen">
+            <h1>🔮 Seer's Vision</h1>
+            <p class="subtitle">Choose a player to investigate</p>
             
             <div class="instructions">
-                <h3>Game Phases:</h3>
+                <p>Select one player to learn if they are a werewolf or not.</p>
+                <p style="margin-top: 10px; color: #666;">Keep this knowledge secret!</p>
+            </div>
+            
+            <div class="player-list" id="investigate-players"></div>
+        </div>
+        
+        <!-- Screen 7: Seer Result -->
+        <div id="seer-result-screen" class="screen">
+            <h1>🔮 The Vision Reveals...</h1>
+            
+            <div style="text-align: center; margin-bottom: 20px;">
+                <div style="color: #666; font-size: 14px;">You investigated:</div>
+                <div class="current-player-name" id="investigated-name" style="margin-top: 5px;">Player</div>
+            </div>
+            
+            <div class="role-display" id="seer-result-display">
+                <div class="role-icon" id="result-icon">🐺</div>
+                <div class="role-label">They Are</div>
+                <div class="role" id="result-role">WEREWOLF</div>
+            </div>
+            
+            <div class="role-info" style="text-align: center; color: #666; margin: 20px 0;">
+                Remember this information and use it wisely!
+            </div>
+            
+            <button class="btn btn-primary" onclick="finishSeerInvestigation()">Continue to Day ☀️</button>
+        </div>
+        
+        <!-- Screen 8: Game Started -->
+        <div id="game-screen" class="screen">
+            <h1>☀️ Day Breaks</h1>
+            
+            <div class="instructions">
+                <h3>Discussion Phase:</h3>
                 <ul>
-                    <li><strong>Night:</strong> Everyone closes eyes</li>
-                    <li>Werewolves 🐺 open eyes & choose a victim</li>
-                    <li>Seer 🔮 opens eyes & learns one player's role</li>
-                    <li><strong>Day:</strong> Everyone discusses & votes!</li>
+                    <li>Everyone opens their eyes</li>
+                    <li>Discuss who you suspect is a werewolf</li>
+                    <li>The Seer may share hints (but not reveal themselves!)</li>
                     <li>Vote to eliminate who you suspect</li>
                 </ul>
             </div>
@@ -407,7 +452,7 @@
             <button class="btn btn-secondary" onclick="newGame()">New Game</button>
         </div>
         
-        <!-- Screen 6: Reveal All -->
+        <!-- Screen 9: Reveal All -->
         <div id="reveal-screen" class="screen">
             <h1>🎭 The Reveal</h1>
             <p class="subtitle">All roles are now shown</p>
@@ -430,6 +475,9 @@
         let customSeerCount = 1;
         let customVillagerCount = 3;
         let useCustomRoles = false;
+        let seerIndices = []; // Track which players are seers
+        let currentSeerIndex = 0; // Which seer is currently investigating
+        let investigatedPlayerIndex = -1; // Who was investigated
         
         function goToNameEntry() {
             const count = parseInt(document.getElementById('player-count').value);
@@ -627,8 +675,95 @@
             if (currentPlayerIndex < players.length) {
                 showPassScreen();
             } else {
+                // All players have seen their roles, now go to Seer phase
+                startSeerPhase();
+            }
+        }
+        
+        function startSeerPhase() {
+            // Find all seers
+            seerIndices = [];
+            for (let i = 0; i < roles.length; i++) {
+                if (roles[i] === 'seer') {
+                    seerIndices.push(i);
+                }
+            }
+            
+            if (seerIndices.length === 0) {
+                // No seers, go straight to day
+                showGameScreen();
+            } else {
+                currentSeerIndex = 0;
+                showNextSeerScreen();
+            }
+        }
+        
+        function showNextSeerScreen() {
+            if (currentSeerIndex < seerIndices.length) {
+                const seerPlayerIndex = seerIndices[currentSeerIndex];
+                document.getElementById('seer-pass-name').textContent = players[seerPlayerIndex];
+                showScreen('seer-pass-screen');
+            } else {
+                // All seers have investigated, go to day
                 showGameScreen();
             }
+        }
+        
+        function showSeerInvestigation() {
+            const seerPlayerIndex = seerIndices[currentSeerIndex];
+            
+            // Build list of other players to investigate
+            const container = document.getElementById('investigate-players');
+            container.innerHTML = '';
+            
+            players.forEach((player, index) => {
+                if (index !== seerPlayerIndex) {
+                    const div = document.createElement('div');
+                    div.className = 'player-item';
+                    div.style.cursor = 'pointer';
+                    div.onclick = () => investigatePlayer(index);
+                    div.innerHTML = `
+                        <div class="player-number">${index + 1}</div>
+                        <div class="player-name">${player}</div>
+                        <div style="color: #999;">🔍</div>
+                    `;
+                    container.appendChild(div);
+                }
+            });
+            
+            showScreen('seer-investigate-screen');
+        }
+        
+        function investigatePlayer(playerIndex) {
+            investigatedPlayerIndex = playerIndex;
+            const investigatedName = players[playerIndex];
+            const isWerewolf = roles[playerIndex] === 'werewolf';
+            
+            document.getElementById('investigated-name').textContent = investigatedName;
+            
+            const resultDisplay = document.getElementById('seer-result-display');
+            const resultIcon = document.getElementById('result-icon');
+            const resultRole = document.getElementById('result-role');
+            
+            // Reset class
+            resultDisplay.className = 'role-display';
+            
+            if (isWerewolf) {
+                resultDisplay.classList.add('role-werewolf');
+                resultIcon.textContent = '🐺';
+                resultRole.textContent = 'A WEREWOLF!';
+            } else {
+                resultDisplay.classList.add('role-villager');
+                resultIcon.textContent = '👥';
+                resultRole.textContent = 'NOT A WEREWOLF';
+            }
+            
+            showScreen('seer-result-screen');
+        }
+        
+        function finishSeerInvestigation() {
+            currentSeerIndex++;
+            showNextSeerScreen();
         }
         
         function showGameScreen() {
@@ -702,6 +837,9 @@
             players = [];
             roles = [];
             currentPlayerIndex = 0;
+            seerIndices = [];
+            currentSeerIndex = 0;
+            investigatedPlayerIndex = -1;
             useCustomRoles = false;
             customWerewolfCount = 2;
             customSeerCount = 1;
