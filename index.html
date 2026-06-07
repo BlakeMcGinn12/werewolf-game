@@ -495,27 +495,50 @@
         let canInvestigate = false; // Whether seer can click to investigate
         
         function goToNameEntry() {
-            const count = parseInt(document.getElementById('player-count').value);
-            
-            if (count < 5 || count > 12) {
-                alert('Please enter 5-12 players');
-                return;
+            try {
+                console.log('goToNameEntry clicked');
+                const countInput = document.getElementById('player-count');
+                console.log('Player count input:', countInput);
+                
+                if (!countInput) {
+                    alert('Error: Could not find player count input');
+                    return;
+                }
+                
+                const count = parseInt(countInput.value);
+                console.log('Player count:', count);
+                
+                if (isNaN(count) || count < 5 || count > 12) {
+                    alert('Please enter 5-12 players');
+                    return;
+                }
+                
+                const container = document.getElementById('name-inputs');
+                console.log('Name inputs container:', container);
+                
+                if (!container) {
+                    alert('Error: Could not find name inputs container');
+                    return;
+                }
+                
+                container.innerHTML = '';
+                
+                for (let i = 0; i < count; i++) {
+                    const div = document.createElement('div');
+                    div.className = 'input-group';
+                    div.innerHTML = `
+                        <label>Player ${i + 1}</label>
+                        <input type="text" id="player-${i}" placeholder="Enter name" value="Player ${i + 1}">
+                    `;
+                    container.appendChild(div);
+                }
+                
+                console.log('Switching to names-screen');
+                showScreen('names-screen');
+            } catch (err) {
+                console.error('Error in goToNameEntry:', err);
+                alert('Error: ' + err.message);
             }
-            
-            const container = document.getElementById('name-inputs');
-            container.innerHTML = '';
-            
-            for (let i = 0; i < count; i++) {
-                const div = document.createElement('div');
-                div.className = 'input-group';
-                div.innerHTML = `
-                    <label>Player ${i + 1}</label>
-                    <input type="text" id="player-${i}" placeholder="Enter name" value="Player ${i + 1}">
-                `;
-                container.appendChild(div);
-            }
-            
-            showScreen('names-screen');
         }
         
         function assignRoles(playerCount) {
