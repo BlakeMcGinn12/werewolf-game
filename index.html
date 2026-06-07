@@ -429,7 +429,9 @@
                 Remember this information and use it wisely!
             </div>
             
-            <button class="btn btn-primary" onclick="finishSeerInvestigation()">Continue to Day ☀️</button>
+            <button class="btn btn-primary" onclick="finishSeerInvestigation()">Next Investigation 🔮</button>
+            <button class="btn btn-secondary" onclick="goToDayPhase()">End Night → Day ☀️</button>
+            <button class="btn btn-danger" onclick="endGameNow()">End Game 👀</button>
         </div>
         
         <!-- Screen 8: Game Started -->
@@ -448,6 +450,7 @@
             
             <div class="player-list" id="game-players"></div>
             
+            <button class="btn btn-primary" onclick="startNextNight()">🌙 Next Night</button>
             <button class="btn btn-danger" onclick="revealAll()">Reveal All Roles 👀</button>
             <button class="btn btn-secondary" onclick="newGame()">New Game</button>
         </div>
@@ -762,7 +765,25 @@
         }
         
         function finishSeerInvestigation() {
+            // Move to next seer (cycle through all seers)
             currentSeerIndex++;
+            if (currentSeerIndex >= seerIndices.length) {
+                currentSeerIndex = 0; // Loop back to first seer for next round
+            }
+            showNextSeerScreen();
+        }
+        
+        function goToDayPhase() {
+            showGameScreen();
+        }
+        
+        function endGameNow() {
+            revealAll();
+        }
+        
+        function startNextNight() {
+            // Reset seer index to start from first seer
+            currentSeerIndex = 0;
             showNextSeerScreen();
         }
         
