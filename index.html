@@ -127,10 +127,21 @@
             cursor: pointer;
             transition: transform 0.2s, box-shadow 0.2s;
             margin-bottom: 10px;
+            pointer-events: auto;
+            position: relative;
+            z-index: 10;
         }
         
         .btn:active {
             transform: scale(0.98);
+        }
+        
+        .instructions {
+            pointer-events: none;
+        }
+        
+        .instructions * {
+            pointer-events: auto;
         }
         
         .btn-primary {
@@ -312,7 +323,7 @@
                 <input type="number" id="player-count" min="5" max="12" value="6">
             </div>
             
-            <button class="btn btn-primary" onclick="alert('Button clicked!'); goToNameEntry();">Next →</button>
+            <button class="btn btn-primary" id="setup-next-btn" type="button">Next →</button>
         </div>
         
         <!-- Screen 2: Name Entry -->
@@ -982,6 +993,23 @@
             document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
             document.getElementById(screenId).classList.add('active');
         }
+        
+        // Add event listener after DOM is loaded
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('DOM loaded, attaching button listener');
+            const setupBtn = document.getElementById('setup-next-btn');
+            if (setupBtn) {
+                console.log('Found setup button, attaching click handler');
+                setupBtn.addEventListener('click', function(e) {
+                    console.log('Setup button clicked!');
+                    e.preventDefault();
+                    e.stopPropagation();
+                    goToNameEntry();
+                });
+            } else {
+                console.error('Could not find setup-next-btn!');
+            }
+        });
     </script>
 </body>
 </html>
