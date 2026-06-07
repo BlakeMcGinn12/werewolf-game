@@ -524,35 +524,18 @@
                 roleIcon.textContent = '🐺';
                 roleName.textContent = 'WEREWOLF';
                 
-                const werewolfIndices = getWerewolfIndices();
-                const werewolfNames = werewolfIndices.map(i => players[i]).filter((_, idx) => werewolfIndices[idx] !== currentPlayerIndex);
-                
-                let werewolfListHtml = '';
-                if (werewolfNames.length > 0) {
-                    werewolfListHtml = `<ul class="werewolf-list">${werewolfNames.map(name => `<li>🐺 ${name}</li>`).join('')}</ul>`;
-                } else {
-                    werewolfListHtml = '<div>You are the only werewolf!</div>';
-                }
-                
                 roleInfo.innerHTML = `
-                    <div class="role-info-title">Fellow Werewolves</div>
-                    ${werewolfListHtml}
-                    <div style="margin-top: 10px;"><strong>Your Objective:</strong> Eliminate villagers at night without being discovered!</div>
+                    <div class="role-info-title">Your Objective</div>
+                    <div>Eliminate villagers without being discovered! Work with your fellow werewolves (if any) — but you don't know who they are yet.</div>
                 `;
             } else if (role === 'seer') {
                 roleDisplay.classList.add('role-seer');
                 roleIcon.textContent = '🔮';
                 roleName.textContent = 'SEER';
                 
-                // Find all werewolves to show the seer
-                const werewolfIndices = getWerewolfIndices();
-                const werewolfNames = werewolfIndices.map(i => players[i]);
-                
                 roleInfo.innerHTML = `
-                    <div class="role-info-title">Secret Knowledge</div>
-                    <div>The werewolves are:</div>
-                    <ul class="werewolf-list">${werewolfNames.map(name => `<li>🐺 ${name}</li>`).join('')}</ul>
-                    <div style="margin-top: 10px;"><strong>Your Objective:</strong> Help villagers find the werewolves without revealing you're the Seer!</div>
+                    <div class="role-info-title">Your Power</div>
+                    <div>You can secretly investigate one player each night to learn if they're a werewolf. Use this knowledge to guide the village — but don't reveal you're the Seer or the werewolves will target you!</div>
                 `;
             }
             
